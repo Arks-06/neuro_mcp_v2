@@ -1,0 +1,25 @@
+# --- Virtual Environment ---
+.venv/
+venv/
+ENV/
+
+# --- Python & Caching ---
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# --- Local Databases & Storage ---
+# Prevents committing your ChromaDB SQLite binaries and vector indices
+memory_db/
+
+# --- Claude Sandbox Workspace ---
+# Prevents committing any text summaries, local logs, or code Claude generates
+workspace/
+
+# --- Environment Variables / Secrets ---
+.env
+.env.local
