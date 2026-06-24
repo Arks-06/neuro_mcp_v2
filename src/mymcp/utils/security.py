@@ -2,8 +2,9 @@ from pathlib import Path
 import os
 
 # from security.py -> utils -> mymcp -> src -> root -> workspace
-BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
-WORKSPACE_DIR = BASE_DIR / "workspace"
+CURRENT_FILE = Path(__file__).resolve()
+PROJECT_ROOT = CURRENT_FILE.parent.parent.parent.parent
+WORKSPACE_DIR = PROJECT_ROOT / "workspace"
 
 def secure_path(requested_path: str) -> Path:
     """

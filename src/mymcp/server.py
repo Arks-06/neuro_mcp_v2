@@ -1,17 +1,18 @@
 import asyncio
+import json
 from fastmcp import FastMCP
 from tools.fs_io import read_file, write_file
 from tools.memory import store_memory, recall_memory
 from tools.websrch import web_search
 from tools.emotion import analyze_emotion
+from tools.summarize import summarize_text
+from tools.extractor import extract_entities_and_intent
 
-# Initialize FastMCP Server
 mcp = FastMCP(
     "Neuro_MCP_V2",
     # description="Advanced local capabilities server providing shared semantic memory, sandboxed I/O, web search, and emotional intelligence."
 )
 
-# File System Tools
 @mcp.tool(name="read_workspace_file")
 async def tool_read_file(file_path: str) -> str:
     """
@@ -28,7 +29,6 @@ async def tool_write_file(file_path: str, content: str) -> str:
     """
     return await write_file(file_path, content)
 
-# --- Shared Vector Memory Tools ---
 @mcp.tool(name="store_persistent_memory")
 def tool_store_memory(concept: str, details: str) -> str:
     """
@@ -45,7 +45,6 @@ def tool_recall_memory(query: str, n_results: int = 3) -> str:
     """
     return recall_memory(query, n_results)
 
-# --- Live Web Search Tool ---
 @mcp.tool(name="tavily_web_search")
 async def tool_web_search(query: str) -> str:
     """
@@ -54,7 +53,6 @@ async def tool_web_search(query: str) -> str:
     """
     return await web_search(query)
 
-# --- Emotional Intelligence Tool ---
 @mcp.tool(name="analyze_text_emotion")
 def tool_analyze_emotion(text: str) -> str:
     """
@@ -63,6 +61,42 @@ def tool_analyze_emotion(text: str) -> str:
     Use this to adapt your tone or better understand user sentiment.
     """
     return analyze_emotion(text)
+
+@mcp.tool(name="summarize_document")
+def tool_summarize_text(text: str, compression_ratio: float = 0.3, max_sentences: int = 5) -> str:
+    """
+    Analyze and extract the most significant, informational sentences from a long block of text,
+    article, file content, or search dump. 
+    Use this to instantly compress data when a user asks for a summary or before saving text to logs.
+    """
+    return summarize_text(text, ratio=compression_ratio, max_sentences=max_sentences)
+
+@mcp.tool(name="extract_entities_and_intent")
+def tool_extract_nlp(text: str) -> str:
+    """
+    Parses unstructured text records, web dumps, or prompt messages to extract critical parameters
+    like emails, URLs, monetary bounds, IP addresses, and custom proper nouns. It simultaneously
+    classifies the system operational intent behind the text.
+    """
+    result_dict = extract_entities_and_intent(text)
+    return json.dumps(result_dict, indent=2)
+
+# @mcp.tool(name="index_workspace")
+# def tool_index_workspace() -> str:
+#     """
+#     Scans all text documents in the sandboxed workspace and indexes them into the 
+#     semantic vector database. Run this when new files are added to the workspace 
+#     so they become searchable.
+#     """
+#     return index_workspace_documents()
+
+# @mcp.tool(name="search_workspace")
+# def tool_search_workspace(query: str, n_results: int = 3) -> str:
+#     """
+#     Perform a deep semantic meaning-based search across all indexed workspace files.
+#     Use this to find specific concepts, ideas, or data inside the user's local documents.
+#     """
+#     return search_workspace(query, n_results)
 
 if __name__ == "__main__":
     # Runs the server using stdio transport layer for Claude Desktop connection

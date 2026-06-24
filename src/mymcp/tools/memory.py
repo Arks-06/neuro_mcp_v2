@@ -1,49 +1,54 @@
+import json
+from datetime import datetime
 import chromadb
-import uuid
 from pathlib import Path
+import os
 
-# database path at the project root
-BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
-DB_DIR = BASE_DIR / "memory_db"
+CURRENT_FILE = Path(__file__).resolve()
 
-# ChromaDB client (it will create the folder if it doesn't exist)
-client = chromadb.PersistentClient(path=str(DB_DIR))
+# (tools -> mymcp -> src -> second_mcp_server)
+PROJECT_ROOT = CURRENT_FILE.parent.parent.parent.parent
 
-# a specific collection for Claude
-memory_collection = client.get_or_create_collection(name="claude_shared_memory")
+# database path explicitly in project folder
+DB_PATH = PROJECT_ROOT / "memory_db"
+
+# bulletproof absolute path
+chroma_client = chromadb.PersistentClient(path=str(DB_PATH))
+collection = chroma_client.get_or_create_collection(name="claude_shared_memory")
 
 def store_memory(concept: str, details: str) -> str:
-    """Store a persistent memory into the vector database."""
+    """Stores a new memory concept in the database."""
     try:
-        doc_id = str(uuid.uuid4())
-        
-        memory_collection.add(
+        doc_id = f"mem_{int(datetime.now().timestamp())}"
+        collection.add(
             documents=[details],
-            metadatas=[{"concept": concept}],
+            metadatas=[{"concept": concept, "timestamp": datetime.now().isoformat()}],
             ids=[doc_id]
         )
-        return f"Success: Memory regarding '{concept}' stored permanently."
+        return f"Successfully stored memory for concept: {concept}"
     except Exception as e:
-        return f"Error storing memory: {str(e)}"
+        return f"Failed to store memory: {e}"
 
 def recall_memory(query: str, n_results: int = 3) -> str:
-    """Search the vector database for relevant past memories."""
+    """Searches the database for relevant memories."""
+    if collection.count() == 0:
+        return "No memories stored yet."
+    
     try:
-        results = memory_collection.query(
+        results = collection.query(
             query_texts=[query],
             n_results=n_results
         )
         
-        documents = results.get("documents", [[]])[0]
-        metadatas = results.get("metadatas", [[]])[0]
-        
-        if not documents:
+        if not results['documents'][0]:
             return "No relevant memories found."
             
-        output = "Recalled Memories:\n"
-        for doc, meta in zip(documents, metadatas):
-            output += f"- [{meta.get('concept', 'Unknown')}]: {doc}\n"
+        formatted_results = []
+        for i in range(len(results['documents'][0])):
+            doc = results['documents'][0][i]
+            meta = results['metadatas'][0][i]
+            formatted_results.append(f"Concept: {meta['concept']}\nDetails: {doc}")
             
-        return output
+        return "\n\n---\n\n".join(formatted_results)
     except Exception as e:
-        return f"Error recalling memory: {str(e)}"
+        return f"Failed to recall memory: {e}"

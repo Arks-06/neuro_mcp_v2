@@ -1,19 +1,35 @@
-from transformers import pipeline
+import os
+import sys
+import warnings
 
-# Initialize the pipeline globally so the model is only loaded into memory once on startup
-try:
-    # This specific model classifies text into 7 basic emotions
-    emotion_classifier = pipeline(
-        "text-classification", 
-        model="j-hartmann/emotion-english-distilroberta-base", 
-        top_k=3
-    )
-except Exception as e:
-    emotion_classifier = None
-    print(f"Warning: Failed to load the emotion classification model. Error: {e}")
+os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
+os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+warnings.filterwarnings("ignore")
+
+emotion_classifier = None  
+
+def load_model():
+    """Initializes the model only when requested."""
+    global emotion_classifier
+    if emotion_classifier is None:
+        original_stdout = sys.stdout
+        sys.stdout = sys.stderr
+        try:
+            from transformers import pipeline
+            emotion_classifier = pipeline(
+                "text-classification", 
+                model="j-hartmann/emotion-english-distilroberta-base", 
+                top_k=3
+            )
+        except Exception as e:
+            print(f"Failed to load emotion model: {e}", file=sys.stderr)
+        finally:
+            sys.stdout = original_stdout
 
 def analyze_emotion(text: str) -> str:
     """Analyze the emotional tone of a given text and return the top 3 detected emotions."""
+    load_model()
+    
     if emotion_classifier is None:
         return "Error: The emotion classification model failed to load during server startup."
         

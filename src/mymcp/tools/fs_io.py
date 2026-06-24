@@ -1,5 +1,8 @@
 import aiofiles
+import asyncio
 from utils.security import secure_path
+
+io_lock = asyncio.Lock()
 
 async def read_file(file_path: str) -> str:
     """Read contents from a file strictly inside the workspace sandbox."""
@@ -9,9 +12,10 @@ async def read_file(file_path: str) -> str:
             return f"Error: File '{file_path}' does not exist."
         if not safe_path.is_file():
             return f"Error: '{file_path}' is not a file, it might be a directory."
-            
-        async with aiofiles.open(safe_path, mode='r', encoding='utf-8') as f:
-            content = await f.read()
+        
+        async with io_lock:
+            async with aiofiles.open(safe_path, mode='r', encoding='utf-8') as f:
+                content = await f.read()
         return content
     except PermissionError as e:
         return str(e)
@@ -25,8 +29,9 @@ async def write_file(file_path: str, content: str) -> str:
         # Automatically create any missing subfolders inside the workspace
         safe_path.parent.mkdir(parents=True, exist_ok=True)
         
-        async with aiofiles.open(safe_path, mode='w', encoding='utf-8') as f:
-            await f.write(content)
+        async with io_lock:
+            async with aiofiles.open(safe_path, mode='w', encoding='utf-8') as f:
+                await f.write(content)
         return f"Success: Successfully wrote to '{file_path}'."
     except PermissionError as e:
         return str(e)

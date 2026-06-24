@@ -23,3 +23,7 @@ workspace/
 # --- Environment Variables / Secrets ---
 .env
 .env.local
+
+v2_memory_db/
+
+codetxt.txt
