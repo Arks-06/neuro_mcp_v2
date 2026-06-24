@@ -7,6 +7,8 @@ Neuro MCP V2 is an advanced, production-grade local Model Context Protocol (MCP)
 * **Sandboxed File System I/O:** Safely reads and writes files asynchronously via `aiofiles` within a strict, path-traversal-protected `workspace/` directory.
 * **Live Web Research:** Interacts with the Tavily Search API via `httpx` to pull real-time data, documentation, and news directly into Claude's context window.
 * **Local Emotional Intelligence:** Runs a localized Hugging Face DistilRoBERTa pipeline via `transformers` and `torch` to analyze the semantic emotional tone of text blocks with zero external API latency.
+* **Algorithmic Text Summarization:** Compresses long documents and web search dumps using an extractive summarization engine based on normalized word-frequency scoring, instantly extracting key informational sentences to prevent LLM context window exhaustion.
+* **Zero-Dependency Entity & Intent Extraction:** Parses unstructured text records locally using a highly optimized, regex-based NLP engine to instantly extract critical parameters (IPs, emails, URLs, monetary bounds) and classify system operational intent.
 
 ## Architecture & Tech Stack
 * **Framework:** `fastmcp` (Official Python SDK for MCP)
@@ -33,6 +35,8 @@ neuro_mcp_v2/
             ├── fs_io.py
             ├── memory.py
             ├── websrch.py
+            ├── extractor.py
+            ├── summarize.py
         ├── utils/
             ├── security.py
 ├── uv.lock
